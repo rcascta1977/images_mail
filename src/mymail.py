@@ -1,4 +1,5 @@
 
+import threading
 #Estas bibliotecas permiten hacer la conexión al servidor y el correo usado para el envío
 import ssl
 import smtplib
@@ -12,12 +13,14 @@ from mimetypes import MimeTypes
 def sendQuickMail(subject:str, message:str, destination:str) -> None:
     """
     Envía un correo electrónico rápido al destino indicado.
-    @param subject: El tema del mensaje.
-    @param message: El mensaje que será enviado en el correo.
-    @param destination: El correo electrónico de destino del mensaje.
-    returns: None
-    Se utilizará el puerto 587 y se utilizará TLS
-    Se utilizará el servidor de correo smtp.gmail.com
+
+    Arguments:
+    subject(str): El tema del mensaje.
+    message(str): El mensaje que será enviado en el correo.
+    destination(str): El correo electrónico de destino del mensaje.
+    Returns
+    None
+
     """
     correo_envio=input("Indique el correo que usará para el envío del mensaje: ")
     password=input("Indique la clave de acceso a la app de su correo: ")
@@ -26,29 +29,33 @@ def sendQuickMail(subject:str, message:str, destination:str) -> None:
     mensaje["Subject"] = subject
     mensaje["From"] = correo_envio
     mensaje["To"] = destination
-    mensaje["Cc"] = "jazminmonge@gmail.com"
+    mensaje["Cc"] = "rcanessaccr@yahoo.com"
 
     context = ssl.create_default_context()
-    with smtplib.SMTP("smtp.gmail.com", 587) as conexion:
-       conexion.ehlo()
-       conexion.starttls(context=context)
-       conexion.ehlo()
-       conexion.login(correo_envio, password)
-       respuesta=conexion.sendmail(correo_envio, destination, message)
+    def envio_correo(message,destination):
+        with smtplib.SMTP("smtp.gmail.com", 587) as conexion:
+            conexion.ehlo()
+            conexion.starttls(context=context)
+            conexion.ehlo()
+            conexion.login(correo_envio, password)
+            respuesta=conexion.sendmail(correo_envio, destination, message)
+            print(respuesta)
    
-    print(respuesta)
+    hilo1=threading.Thread(target=envio_correo, args=(message,destination))
+    hilo1.start()
+    hilo1.join()
 
 def sendAttachEmail(subject:str, message:str, destination:str, path:str)-> None:
     """
     Envía un correo electrónico con un archivo adjunto a la dirección indicada
-    @param subject: El tema del mensaje.
-    @param message: El mensaje que será enviado en el correo.
-    @param destination: El correo electrónico de destino del mensaje.
-    @param path: La ruta del archivo que se va a adjuntar.
-    returns: None
+   
+    subject(str): El tema del mensaje.
+    message(str): El mensaje que será enviado en el correo.
+    destination(str): El correo electrónico de destino del mensaje.
+    path(str): La ruta del archivo que se va a adjuntar.
 
-    Se utilizará el puerto 587 y se utilizará TLS
-    Se utilizará el servidor de correo smtp.gmail.com
+    Returns
+    None
     """
     correo_envio=input("Indique el correo que usará para el envío del mensaje: ")
     password=input("Indique la clave de acceso a la app de su correo: ")
@@ -82,11 +89,16 @@ def sendAttachEmail(subject:str, message:str, destination:str, path:str)-> None:
     mensaje.attach(adjunto)
 
     context = ssl.create_default_context()
-    with smtplib.SMTP("smtp.gmail.com", 587) as conexion:
-       conexion.ehlo()
-       conexion.starttls(context=context)
-       conexion.ehlo()
-       conexion.login(correo_envio, password)
-       respuesta=conexion.sendmail(correo_envio, destination, mensaje.as_string())
-    print(respuesta)
+    def envio_correo_adjunto(destination):
+        with smtplib.SMTP("smtp.gmail.com", 587) as conexion:
+            conexion.ehlo()
+            conexion.starttls(context=context)
+            conexion.ehlo()
+            conexion.login(correo_envio, password)
+            respuesta=conexion.sendmail(correo_envio, destination, mensaje.as_string())
+            print(respuesta)
+
+    hilo2=threading.Thread(target=envio_correo_adjunto, args=(destination,))
+    hilo2.start()
+    hilo2.join()
 
